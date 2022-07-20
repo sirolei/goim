@@ -3,12 +3,12 @@ package job
 import (
 	"context"
 	"fmt"
+	"goim/api/comet"
+	"goim/internal/job/conf"
 	"net/url"
 	"sync/atomic"
 	"time"
 
-	"github.com/Terry-Mao/goim/api/comet"
-	"github.com/Terry-Mao/goim/internal/job/conf"
 	"github.com/bilibili/discovery/naming"
 
 	log "github.com/golang/glog"

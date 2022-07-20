@@ -2,13 +2,13 @@ package grpc
 
 import (
 	"context"
+	"goim/internal/comet"
+	"goim/internal/comet/conf"
+	"goim/internal/comet/errors"
 	"net"
 	"time"
 
-	pb "github.com/Terry-Mao/goim/api/comet"
-	"github.com/Terry-Mao/goim/internal/comet"
-	"github.com/Terry-Mao/goim/internal/comet/conf"
-	"github.com/Terry-Mao/goim/internal/comet/errors"
+	pb "goim/api/comet"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -24,7 +24,7 @@ func New(c *conf.RPCServer, s *comet.Server) *grpc.Server {
 		MaxConnectionAge:      time.Duration(c.MaxLifeTime),
 	})
 	srv := grpc.NewServer(keepParams)
-	pb.RegisterCometServer(srv, &server{s})
+	pb.RegisterCometServer(srv, &server{srv: s})
 	lis, err := net.Listen(c.Network, c.Addr)
 	if err != nil {
 		panic(err)
@@ -39,6 +39,7 @@ func New(c *conf.RPCServer, s *comet.Server) *grpc.Server {
 
 type server struct {
 	srv *comet.Server
+	pb.UnimplementedCometServer
 }
 
 var _ pb.CometServer = &server{}

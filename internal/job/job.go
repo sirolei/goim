@@ -3,22 +3,22 @@ package job
 import (
 	"context"
 	"fmt"
+	"github.com/Shopify/sarama"
+	"google.golang.org/protobuf/proto"
 	"sync"
 	"time"
 
-	pb "github.com/Terry-Mao/goim/api/logic"
-	"github.com/Terry-Mao/goim/internal/job/conf"
 	"github.com/bilibili/discovery/naming"
-	"github.com/golang/protobuf/proto"
+	pb "goim/api/logic"
+	"goim/internal/job/conf"
 
-	cluster "github.com/bsm/sarama-cluster"
 	log "github.com/golang/glog"
 )
 
 // Job is push job.
 type Job struct {
 	c            *conf.Config
-	consumer     *cluster.Consumer
+	consumer     *sarama.ConsumerGroup
 	cometServers map[string]*Comet
 
 	rooms      map[string]*Room
@@ -36,50 +36,96 @@ func New(c *conf.Config) *Job {
 	return j
 }
 
-func newKafkaSub(c *conf.Kafka) *cluster.Consumer {
-	config := cluster.NewConfig()
+func newKafkaSub(c *conf.Kafka) *sarama.ConsumerGroup {
+	config := sarama.NewConfig()
 	config.Consumer.Return.Errors = true
-	config.Group.Return.Notifications = true
-	consumer, err := cluster.NewConsumer(c.Brokers, c.Group, []string{c.Topic}, config)
+	config.Version = sarama.V2_0_0_0
+	consumer, err := sarama.NewConsumerGroup(c.Brokers, c.Group, config)
 	if err != nil {
 		panic(err)
 	}
-	return consumer
+	return &consumer
 }
 
 // Close close resounces.
 func (j *Job) Close() error {
 	if j.consumer != nil {
-		return j.consumer.Close()
+		return (*j.consumer).Close()
+	}
+	return nil
+}
+
+type jobConsumerGroupHandler struct {
+	job *Job
+}
+
+func (h *jobConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error   { return nil }
+func (h *jobConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error { return nil }
+func (h *jobConsumerGroupHandler) ConsumeClaim(sess sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
+	for msg := range claim.Messages() {
+		fmt.Printf("Message topic:%q partition:%d offset:%d\n", msg.Topic, msg.Partition, msg.Offset)
+		sess.MarkMessage(msg, "")
+		pushMsg := new(pb.PushMsg)
+		if err := proto.Unmarshal(msg.Value, pushMsg); err != nil {
+			log.Errorf("proto.Unmarshal(%v) error(%v)", msg, err)
+			continue
+		}
+		if err := h.job.push(context.Background(), pushMsg); err != nil {
+			log.Errorf("j.push(%v) error(%v)", pushMsg, err)
+		}
+		log.Infof("consume: %s/%d/%d\t%s\t%+v", msg.Topic, msg.Partition, msg.Offset, msg.Key, pushMsg)
 	}
 	return nil
 }
 
 // Consume messages, watch signals
 func (j *Job) Consume() {
-	for {
-		select {
-		case err := <-j.consumer.Errors():
+
+	consumerGroup := *j.consumer
+
+	defer func() { _ = consumerGroup.Close() }()
+
+	go func() {
+		for err := range consumerGroup.Errors() {
 			log.Errorf("consumer error(%v)", err)
-		case n := <-j.consumer.Notifications():
-			log.Infof("consumer rebalanced(%v)", n)
-		case msg, ok := <-j.consumer.Messages():
-			if !ok {
-				return
-			}
-			j.consumer.MarkOffset(msg, "")
-			// process push message
-			pushMsg := new(pb.PushMsg)
-			if err := proto.Unmarshal(msg.Value, pushMsg); err != nil {
-				log.Errorf("proto.Unmarshal(%v) error(%v)", msg, err)
-				continue
-			}
-			if err := j.push(context.Background(), pushMsg); err != nil {
-				log.Errorf("j.push(%v) error(%v)", pushMsg, err)
-			}
-			log.Infof("consume: %s/%d/%d\t%s\t%+v", msg.Topic, msg.Partition, msg.Offset, msg.Key, pushMsg)
+		}
+	}()
+
+	ctx := context.Background()
+	topics := []string{j.c.Kafka.Topic}
+	for {
+		handler := &jobConsumerGroupHandler{job: j}
+		err := consumerGroup.Consume(ctx, topics, handler)
+		if err != nil {
+			panic(err)
 		}
 	}
+
+	//
+	//for {
+	//	select {
+	//	case err := <-consumerGroup.Errors():
+	//		log.Errorf("consumer error(%v)", err)
+	//
+	//	case
+	//
+	//	case msg, ok := <-j.consumer.Messages():
+	//		if !ok {
+	//			return
+	//		}
+	//		j.consumer.MarkOffset(msg, "")
+	//		// process push message
+	//		pushMsg := new(pb.PushMsg)
+	//		if err := proto.Unmarshal(msg.Value, pushMsg); err != nil {
+	//			log.Errorf("proto.Unmarshal(%v) error(%v)", msg, err)
+	//			continue
+	//		}
+	//		if err := j.push(context.Background(), pushMsg); err != nil {
+	//			log.Errorf("j.push(%v) error(%v)", pushMsg, err)
+	//		}
+	//		log.Infof("consume: %s/%d/%d\t%s\t%+v", msg.Topic, msg.Partition, msg.Offset, msg.Key, pushMsg)
+	//	}
+	//}
 }
 
 func (j *Job) watchComet(c *naming.Config) {

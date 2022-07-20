@@ -2,12 +2,12 @@ package grpc
 
 import (
 	"context"
+	"goim/internal/logic"
+	"goim/internal/logic/conf"
 	"net"
 	"time"
 
-	pb "github.com/Terry-Mao/goim/api/logic"
-	"github.com/Terry-Mao/goim/internal/logic"
-	"github.com/Terry-Mao/goim/internal/logic/conf"
+	pb "goim/api/logic"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/keepalive"
@@ -26,7 +26,10 @@ func New(c *conf.RPCServer, l *logic.Logic) *grpc.Server {
 		MaxConnectionAge:      time.Duration(c.MaxLifeTime),
 	})
 	srv := grpc.NewServer(keepParams)
-	pb.RegisterLogicServer(srv, &server{l})
+	pb.RegisterLogicServer(
+		srv,
+		&server{srv: l},
+	)
 	lis, err := net.Listen(c.Network, c.Addr)
 	if err != nil {
 		panic(err)
@@ -41,6 +44,7 @@ func New(c *conf.RPCServer, l *logic.Logic) *grpc.Server {
 
 type server struct {
 	srv *logic.Logic
+	pb.UnimplementedLogicServer
 }
 
 var _ pb.LogicServer = &server{}

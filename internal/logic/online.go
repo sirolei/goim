@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/Terry-Mao/goim/internal/logic/model"
+	"goim/internal/logic/model"
 )
 
 var (

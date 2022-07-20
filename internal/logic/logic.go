@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/Terry-Mao/goim/internal/logic/conf"
-	"github.com/Terry-Mao/goim/internal/logic/dao"
-	"github.com/Terry-Mao/goim/internal/logic/model"
 	"github.com/bilibili/discovery/naming"
 	log "github.com/golang/glog"
+	"goim/internal/logic/conf"
+	"goim/internal/logic/dao"
+	"goim/internal/logic/model"
 )
 
 const (

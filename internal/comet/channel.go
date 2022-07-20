@@ -3,9 +3,9 @@ package comet
 import (
 	"sync"
 
-	"github.com/Terry-Mao/goim/api/protocol"
-	"github.com/Terry-Mao/goim/internal/comet/errors"
-	"github.com/Terry-Mao/goim/pkg/bufio"
+	"goim/api/protocol"
+	"goim/internal/comet/errors"
+	"goim/pkg/bufio"
 )
 
 // Channel used by message pusher send msg to write goroutine.

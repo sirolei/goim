@@ -1,9 +1,9 @@
 package comet
 
 import (
-	"github.com/Terry-Mao/goim/internal/comet/conf"
-	"github.com/Terry-Mao/goim/pkg/bytes"
-	"github.com/Terry-Mao/goim/pkg/time"
+	"goim/internal/comet/conf"
+	"goim/pkg/bytes"
+	"goim/pkg/time"
 )
 
 // RoundOptions round options.

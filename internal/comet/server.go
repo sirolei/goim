@@ -5,12 +5,11 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/Terry-Mao/goim/api/logic"
-	"github.com/Terry-Mao/goim/internal/comet/conf"
 	log "github.com/golang/glog"
 	"github.com/zhenjl/cityhash"
+	"goim/api/logic"
+	"goim/internal/comet/conf"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/keepalive"
 )
 
@@ -43,7 +42,6 @@ func newLogicClient(c *conf.RPCClient) logic.LogicClient {
 				Timeout:             grpcKeepAliveTimeout,
 				PermitWithoutStream: true,
 			}),
-			grpc.WithBalancerName(roundrobin.Name),
 		}...)
 	if err != nil {
 		panic(err)

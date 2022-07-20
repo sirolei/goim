@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Terry-Mao/goim/api/protocol"
 	"github.com/stretchr/testify/assert"
+	"goim/api/protocol"
 )
 
 func TestConnect(t *testing.T) {

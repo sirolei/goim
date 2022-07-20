@@ -7,8 +7,8 @@ import (
 	"syscall"
 
 	"github.com/bilibili/discovery/naming"
-	"github.com/Terry-Mao/goim/internal/job"
-	"github.com/Terry-Mao/goim/internal/job/conf"
+	"goim/internal/job"
+	"goim/internal/job/conf"
 
 	resolver "github.com/bilibili/discovery/naming/grpc"
 	log "github.com/golang/glog"
@@ -29,6 +29,7 @@ func main() {
 	resolver.Register(dis)
 	// job
 	j := job.New(conf.Conf)
+
 	go j.Consume()
 	// signal
 	c := make(chan os.Signal, 1)

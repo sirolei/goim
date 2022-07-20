@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package goim.protocol;
 
-option go_package = "github.com/Terry-Mao/goim/api/protocol;protocol";
+option go_package = "api/protocol;protocol";
 
 /*
  * v1.0.0

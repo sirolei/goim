@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/Terry-Mao/goim/internal/logic/conf"
+	kafka "github.com/Shopify/sarama"
 	"github.com/gomodule/redigo/redis"
-	kafka "gopkg.in/Shopify/sarama.v1"
+	"goim/internal/logic/conf"
 )
 
 // Dao dao.

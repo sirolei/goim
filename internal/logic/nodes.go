@@ -4,10 +4,10 @@ import (
 	"context"
 	"time"
 
-	pb "github.com/Terry-Mao/goim/api/logic"
-	"github.com/Terry-Mao/goim/internal/logic/model"
 	"github.com/bilibili/discovery/naming"
 	log "github.com/golang/glog"
+	pb "goim/api/logic"
+	"goim/internal/logic/model"
 )
 
 // NodesInstances get servers info.

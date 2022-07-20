@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/Terry-Mao/goim/internal/logic/model"
 	"github.com/stretchr/testify/assert"
+	"goim/internal/logic/model"
 )
 
 func TestDaopingRedis(t *testing.T) {

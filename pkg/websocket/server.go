@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	"github.com/Terry-Mao/goim/pkg/bufio"
+	"goim/pkg/bufio"
 )
 
 var (
