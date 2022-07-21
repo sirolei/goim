@@ -17,7 +17,9 @@ var (
 	deployEnv string
 	host      string
 	// Conf config
-	Conf *Config
+	Conf   *Config
+	batch  int
+	signal int
 )
 
 func init() {
@@ -29,6 +31,8 @@ func init() {
 	flag.StringVar(&zone, "job.zone", os.Getenv("ZONE"), "avaliable zone. or use ZONE env variable, value: sh001/sh002 etc.")
 	flag.StringVar(&deployEnv, "job.deploy.env", os.Getenv("DEPLOY_ENV"), "deploy env. or use DEPLOY_ENV env variable, value: dev/fat1/uat/pre/prod etc.")
 	flag.StringVar(&host, "job.host", defHost, "machine hostname. or use default machine hostname.")
+	flag.IntVar(&batch, "job.batch", 20, "batch size to send to room")
+	flag.IntVar(&signal, "job.signal", 1000, "signal interval milliseconds")
 }
 
 // Init init config.
@@ -45,8 +49,8 @@ func Default() *Config {
 		Discovery: &naming.Config{Region: region, Zone: zone, Env: deployEnv, Host: host},
 		Comet:     &Comet{RoutineChan: 1024, RoutineSize: 32},
 		Room: &Room{
-			Batch:  20,
-			Signal: xtime.Duration(time.Second),
+			Batch:  batch,
+			Signal: xtime.Duration(time.Millisecond * time.Duration(signal)),
 			Idle:   xtime.Duration(time.Minute * 15),
 		},
 	}
